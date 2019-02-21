@@ -30,11 +30,15 @@ def get_closest_bar(bars, longitude, latitude):
     return sorted_by_distance[0]
 
 
-if __name__ == '__main__':
+def main():
     try:
-        bars_list = load_data(sys.argv[1])
+        path = sys.argv[1]
+        bars_list = load_data(path)
         user_inp = input("Please input your location (lat, lon): ")
         (user_lat, user_lon) = list(map(float, user_inp.split(",")))
+        closest = get_closest_bar(bars_list, user_lon, user_lat)
+        biggest = get_biggest_bar(bars_list)
+        smallest = get_smallest_bar(bars_list)
     except FileNotFoundError:
         sys.exit("File '{}' not found".format(path))
     except json.JSONDecodeError:
@@ -44,16 +48,17 @@ if __name__ == '__main__':
     except IndexError:
         sys.exit("Invalid command line arguments")
 
-    closest = get_closest_bar(bars_list, user_lon, user_lat)
     print("Closest bar:", closest['properties']['Attributes']['Name'],
           "Address:", closest['properties']['Attributes']['Address'])
 
-    biggest = get_biggest_bar(bars_list)
     seats_count = biggest['properties']['Attributes']['SeatsCount']
     print("Biggest bar:", biggest['properties']['Attributes']['Name'],
           "Seats count:", seats_count)
 
-    smallest = get_smallest_bar(bars_list)
     seats_count = smallest['properties']['Attributes']['SeatsCount']
     print("Smallest bar:", smallest['properties']['Attributes']['Name'],
           "Seats count:", seats_count)
+
+
+if __name__ == '__main__':
+    main()
