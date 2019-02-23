@@ -4,30 +4,47 @@ from geopy.distance import distance
 
 
 def load_data(filepath):
-    with open(filepath, 'r', encoding="utf8") as file_handler:
-        return json.load(file_handler)['features']
+    with open(filepath, "r", encoding="utf8") as file_handler:
+        return json.load(file_handler)["features"]
 
 
 def get_biggest_bar(bars):
-    return max(bars,
-               key=lambda kv: kv['properties']['Attributes']['SeatsCount'])
+    return max(bars, key=get_bar_seats_count)
 
 
 def get_smallest_bar(bars):
-    return min(bars,
-               key=lambda kv: kv['properties']['Attributes']['SeatsCount'])
+    return min(bars, key=get_bar_seats_count)
 
 
 def get_closest_bar(bars, longitude, latitude):
-    user_loc = (latitude, longitude)
+    loc = (latitude, longitude)
+    return min(bars, key=lambda bar: get_bar_distance(loc, bar))
 
-    def sort_by_distance(kv):
-        (lon, lat) = kv['geometry']['coordinates']
-        bar_loc = (lat, lon)
-        return distance(bar_loc, user_loc).km
 
-    sorted_by_distance = sorted(bars, key=sort_by_distance)
-    return sorted_by_distance[0]
+def get_bar_seats_count(bar):
+    return bar["properties"]["Attributes"]["SeatsCount"]
+
+
+def get_bar_address(bar):
+    return bar["properties"]["Attributes"]["Address"]
+
+
+def get_bar_name(bar):
+    return bar["properties"]["Attributes"]["Name"]
+
+
+def get_bar_distance(location, bar):
+    (lon, lat) = bar["geometry"]["coordinates"]
+    bar_loc = (lat, lon)
+    return distance(bar_loc, location).km
+
+
+def print_bar(bar):
+    print(" Name: {}\n Address: {}, Seats count: {}".format(
+        get_bar_name(bar),
+        get_bar_address(bar),
+        get_bar_seats_count(bar)
+    ))
 
 
 def main():
@@ -44,21 +61,19 @@ def main():
     except json.JSONDecodeError:
         sys.exit("Invalid file '{}'".format(path))
     except ValueError:
-        sys.exit('Invalid input')
+        sys.exit("Invalid input")
     except IndexError:
         sys.exit("Invalid command line arguments")
 
-    print("Closest bar:", closest['properties']['Attributes']['Name'],
-          "Address:", closest['properties']['Attributes']['Address'])
+    print("Closest bar:")
+    print_bar(closest)
 
-    seats_count = biggest['properties']['Attributes']['SeatsCount']
-    print("Biggest bar:", biggest['properties']['Attributes']['Name'],
-          "Seats count:", seats_count)
+    print("Biggest bar:")
+    print_bar(biggest)
 
-    seats_count = smallest['properties']['Attributes']['SeatsCount']
-    print("Smallest bar:", smallest['properties']['Attributes']['Name'],
-          "Seats count:", seats_count)
+    print("Smallest bar:")
+    print_bar(smallest)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
